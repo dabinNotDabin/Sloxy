@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sloxy", "Sloxy\Sloxy.vcxproj", "{1938BD37-41DD-4273-9314-D8726EF94E6A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Debug|x64.ActiveCfg = Debug|x64
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Debug|x64.Build.0 = Debug|x64
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Debug|x86.ActiveCfg = Debug|Win32
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Debug|x86.Build.0 = Debug|Win32
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Release|x64.ActiveCfg = Release|x64
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Release|x64.Build.0 = Release|x64
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Release|x86.ActiveCfg = Release|Win32
+		{1938BD37-41DD-4273-9314-D8726EF94E6A}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C7D71407-3617-41B6-A178-558FF48718AF}
+	EndGlobalSection
+EndGlobal

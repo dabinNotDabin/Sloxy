@@ -1,0 +1,121 @@
+﻿  Server.cpp
+c:\cygwin64\usr\include\sys\cdefs.h(721): warning C4005: '__guarded_by': macro redefinition
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\concurrencysal.h(317): note: see previous definition of '__guarded_by'
+c:\cygwin64\usr\include\sys\_types.h(94): error C2144: syntax error: '__int64' should be preceded by ';'
+c:\cygwin64\usr\include\sys\_types.h(94): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\_stdint.h(77): error C2371: 'intptr_t': redefinition; different basic types
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\vcruntime.h(186): note: see declaration of 'intptr_t'
+c:\cygwin64\usr\include\sys\_stdint.h(82): error C2371: 'uintptr_t': redefinition; different basic types
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\vadefs.h(30): note: see declaration of 'uintptr_t'
+c:\cygwin64\usr\include\machine\_endian.h(23): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(23): error C2146: syntax error: missing ';' before identifier '__uint32_t'
+c:\cygwin64\usr\include\machine\_endian.h(24): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(24): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(24): error C2146: syntax error: missing ';' before identifier '__uint16_t'
+c:\cygwin64\usr\include\machine\_endian.h(27): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(27): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(27): error C2146: syntax error: missing ';' before identifier '__uint32_t'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2143: syntax error: missing ')' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C3861: '__asm__': identifier not found
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2143: syntax error: missing ';' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2059: syntax error: ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2059: syntax error: ')'
+c:\cygwin64\usr\include\machine\_endian.h(34): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(34): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(34): error C2146: syntax error: missing ';' before identifier '__uint16_t'
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2143: syntax error: missing ')' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(36): error C3861: '__asm__': identifier not found
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2143: syntax error: missing ';' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2059: syntax error: ':'
+c:\cygwin64\usr\include\machine\_endian.h(38): error C2059: syntax error: ')'
+c:\cygwin64\usr\include\sys\_timeval.h(40): error C2371: 'time_t': redefinition; different basic types
+  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\corecrt.h(523): note: see declaration of 'time_t'
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C2146: syntax error: missing ';' before identifier 'dev_t'
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C2146: syntax error: missing ';' before identifier 'dev_t'
+c:\cygwin64\usr\include\sys\_intsup.h(68): fatal error C1189: #error:  "Unable to determine type definition of intptr_t"
+  Client.cpp
+c:\cygwin64\usr\include\sys\cdefs.h(721): warning C4005: '__guarded_by': macro redefinition
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\concurrencysal.h(317): note: see previous definition of '__guarded_by'
+c:\cygwin64\usr\include\sys\_types.h(94): error C2144: syntax error: '__int64' should be preceded by ';'
+c:\cygwin64\usr\include\sys\_types.h(94): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\_stdint.h(77): error C2371: 'intptr_t': redefinition; different basic types
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\vcruntime.h(186): note: see declaration of 'intptr_t'
+c:\cygwin64\usr\include\sys\_stdint.h(82): error C2371: 'uintptr_t': redefinition; different basic types
+  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.12.25827\include\vadefs.h(30): note: see declaration of 'uintptr_t'
+c:\cygwin64\usr\include\machine\_endian.h(23): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(23): error C2146: syntax error: missing ';' before identifier '__uint32_t'
+c:\cygwin64\usr\include\machine\_endian.h(24): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(24): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(24): error C2146: syntax error: missing ';' before identifier '__uint16_t'
+c:\cygwin64\usr\include\machine\_endian.h(27): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(27): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(27): error C2146: syntax error: missing ';' before identifier '__uint32_t'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2143: syntax error: missing ')' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C3861: '__asm__': identifier not found
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2143: syntax error: missing ';' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2059: syntax error: ':'
+c:\cygwin64\usr\include\machine\_endian.h(29): error C2059: syntax error: ')'
+c:\cygwin64\usr\include\machine\_endian.h(34): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\machine\_endian.h(34): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\machine\_endian.h(34): error C2146: syntax error: missing ';' before identifier '__uint16_t'
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2143: syntax error: missing ')' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(36): error C3861: '__asm__': identifier not found
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2143: syntax error: missing ';' before ':'
+c:\cygwin64\usr\include\machine\_endian.h(37): error C2059: syntax error: ':'
+c:\cygwin64\usr\include\machine\_endian.h(38): error C2059: syntax error: ')'
+c:\cygwin64\usr\include\sys\_timeval.h(40): error C2371: 'time_t': redefinition; different basic types
+  c:\program files (x86)\windows kits\10\include\10.0.16299.0\ucrt\corecrt.h(523): note: see declaration of 'time_t'
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(14): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(15): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(16): error C2146: syntax error: missing ';' before identifier 'dev_t'
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(19): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C2144: syntax error: 'int' should be preceded by ';'
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(25): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C4430: missing type specifier - int assumed. Note: C++ does not support default-int
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C2086: 'int __inline__': redefinition
+  c:\cygwin64\usr\include\machine\_endian.h(23): note: see declaration of '__inline__'
+c:\cygwin64\usr\include\sys\sysmacros.h(31): error C2146: syntax error: missing ';' before identifier 'dev_t'
+c:\cygwin64\usr\include\sys\_intsup.h(68): fatal error C1189: #error:  "Unable to determine type definition of intptr_t"
+  Generating Code...
