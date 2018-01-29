@@ -118,9 +118,11 @@
   <ItemGroup>
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="Server.cpp" />
+    <ClCompile Include="Sloxy.cpp" />
     <ClCompile Include="Socket.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Client.h" />
     <ClInclude Include="Server.h" />
     <ClInclude Include="Sloxy.h" />
     <ClInclude Include="Socket.h" />

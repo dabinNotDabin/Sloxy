@@ -166,6 +166,17 @@ int main(int argc, char * argv[])
 
 
 
+			// Initialize this next socket in the client class
+			// use the web server address extracted by the sloxy for the h_addrtype
+			// Have the client connect to the host
+			// Check that the media is html
+			// Send a head request to determine the content size and to determine if range requests are accepted
+			// Request 100 bytes at a time until the content size is reached
+			// The client may have to ensure that all 100 bytes are received every request.
+			// Append these retrievals and relay to actual client using server object.
+			// 
+
+
 			// ========== CONNECT TO WEB SERVER AND RELAY REQUEST ==========
 			// Create a socket ID referencing the connection with the web server.
 			webServerSocketID = socket(hostEnt->h_addrtype, SOCK_STREAM, 0);
@@ -440,7 +451,7 @@ bool acceptsRanges(char *httpResponse)
 
 Server::Server()
 {
-
+	webClientID = -1;
 }
 
 
@@ -470,4 +481,21 @@ void Server::listenForClients(int port, int maxConnectQue)
 	{
 		cout << "Instantiation of socket failed.\n";
 	}
+}
+
+
+// Accepts a connection through a previously configured listener socket.
+// If successful, the webClientID will be set as part of the server's state.
+void Server::acceptClientConnection()
+{
+	int tempID;
+
+	tempID = accept(listenSocket.getID(), NULL, NULL);
+	if (tempID == -1)
+	{
+		cout << "Accept connection failed..\n";
+		return;
+	}
+
+	webClientID = tempID;
 }

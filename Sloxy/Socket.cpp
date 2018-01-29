@@ -122,3 +122,23 @@ bool Socket::acceptClientConnection(int &clientSocketID)
 
 	return true;
 }
+
+
+bool Socket::connectToHost(struct sockaddr_in hostAddress)
+{
+	if (ID < 0)
+	{
+		cout << "Socket ID not valid.\n";
+		return false;
+	}
+
+	// Connect to the web server.
+	int connectResult = connect(ID, (struct sockaddr *)&hostAddress, sizeof(hostAddress));
+	if (connectResult == -1)
+	{
+		cout << "Socket connect failed..\n";
+		return false;
+	}
+
+	return true;
+}

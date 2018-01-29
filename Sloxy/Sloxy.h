@@ -16,5 +16,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sstream>
+#include <map>
 
+
+// Map to associate host names to their socket id for use in future transactions.
+map<string, int> hosts;
 
