@@ -34,6 +34,23 @@ bool Socket::init()
 	return true;
 }
 
+bool Socket::init(short sin_family)
+{
+	ID = socket(sin_family, SOCK_STREAM, 0);
+
+	if (ID < 0)
+	{
+		cout << "Socket creation failed.. Socket id is -1.\n";
+		return false;
+	}
+
+	cout << "Server socket initialized\n";
+
+	return true;
+}
+
+
+
 void Socket::setAddress(int port)
 {
 	memset(&socketAddress, 0, sizeof(socketAddress));
@@ -44,7 +61,23 @@ void Socket::setAddress(int port)
 	addressInitialized = true;
 }
 
-// Assigns the 
+
+void Socket::setAddress(struct sockaddr_in address)
+{
+	memset(&socketAddress, 0, sizeof(socketAddress));
+	socketAddress.sin_family = address.sin_family;
+	socketAddress.sin_port = address.sin_port;
+	socketAddress.sin_addr = address.sin_addr;
+
+	addressInitialized = true;
+}
+
+
+
+// Binds the address for this socket to the socket for identification purposes.
+// Clients can attempt to connect to this socket using the address that is bound to it.
+// Sockets don't necessarily need an address bound to them, for instance, client sockets.
+// It uses the address that can be set by a call to "setAddress"
 bool Socket::bindAddressWithSocket()
 {
 	if (ID < 0 || !addressInitialized)
@@ -52,7 +85,7 @@ bool Socket::bindAddressWithSocket()
 		if (ID < 0)
 			cout << "Socket ID not valid.\n";
 		else
-			cout << "Socket address must be initialzed with a call to \"setAddress(2)\" before binding.\n";
+			cout << "Socket address must be initialzed with a call to \"setAddress\" before binding.\n";
 
 		return false;
 	}

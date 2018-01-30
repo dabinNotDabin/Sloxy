@@ -17,7 +17,7 @@ Client::~Client()
 bool Client::connectWithHost(struct sockaddr_in hostAddress)
 {
 	// Need an init that takes more info to set the socket up according to the host's protocol
-	if (clientSocket.init())
+	if (clientSocket.init(hostAddress.sin_family))
 	{
 		if (!clientSocket.connectToHost(hostAddress))
 		{
@@ -34,3 +34,7 @@ bool Client::connectWithHost(struct sockaddr_in hostAddress)
 }
 
 
+int Client::getSocketID()
+{
+	return clientSocket.getID();
+}

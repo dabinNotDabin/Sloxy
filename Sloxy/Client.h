@@ -16,12 +16,10 @@ public:
 	~Client();
 
 	bool connectWithHost(struct sockaddr_in hostAddress);
-
+	int getSocketID();
 
 private:
 	// Client socket used to ask web server for information.
 	// It provides an api that allows data to be sent to and received from that web server.
 	Socket clientSocket;
-
-
 };

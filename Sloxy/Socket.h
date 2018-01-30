@@ -10,8 +10,8 @@ public:
 	
 
 	bool init();
-	bool init(sin_family family);
-	void setAddress(struct sockaddr_in hostAddress);
+	bool init(short sin_family);
+	void setAddress(struct sockaddr_in address);
 	void setAddress(int port);
 	bool bindAddressWithSocket();
 	bool listenToSocket(int connectQueueMax);

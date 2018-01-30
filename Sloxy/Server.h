@@ -20,20 +20,14 @@ public:
 	// This function accepts a client connection from the currently configured listener socket.
 	void acceptClientConnection();
 
+	int getWebClientID();
+
 
 private:
 	// This server only needs to service one client at a time so this will suffice
 	int webClientID;
 
 	Socket listenSocket;
-
-	// Server socket only serves data to a client
-	// Server socket calls accept with the id from an instantiated and initialized listener socket and obtains a client id.
-	// It then provides functions that allow data to be sent to and received from that client.
-	Socket serverSocket;
-
-
-
 };
 
 

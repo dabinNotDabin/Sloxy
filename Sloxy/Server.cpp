@@ -4,8 +4,6 @@
 using namespace std;
 
 
-
-void getHostInfoFromRequest(char *request, char *hostName, int &hostNameLen, int &port);
 bool isHtml(char *httpRequest);
 void fromGetToHead(char *httpRequest);
 int getContentLength(char *httpResponse);
@@ -16,7 +14,13 @@ bool acceptsRanges(char *httpResponse);
 
 int main(int argc, char * argv[])
 {
+	Sloxy sloxy;
 	int port = 80;
+
+
+	sloxy.interceptActivity(port);
+
+
 	int listenerSocketID;
 	int webClientSocketID;
 	int webServerSocketID;
@@ -127,7 +131,8 @@ int main(int argc, char * argv[])
 			int length = 0;
 			int webServerPort;
 
-			getHostInfoFromRequest(rcv_message, host, length, webServerPort);
+			Sloxy s;
+			s.getHostInfoFromRequest(rcv_message, host, length, webServerPort);
 			string hostStr(host);
 			cout << "Host Extracted: " << hostStr.c_str() << endl;
 
@@ -284,164 +289,6 @@ int main(int argc, char * argv[])
 	return 0;
 }
 
-// Takes an HTTP request and deciphers the host's information.
-// Sets hostName to the human readable host name and hostNameLen to the length of the host's name.
-// Sets port = 80 if no port number specified, otherwise sets port equal to the specified port number.
-void getHostInfoFromRequest(char *httpRequest, char *hostName, int &hostNameLen, int &port)
-{
-	string req(httpRequest);
-
-	// Find the "Host:" tag
-	size_t pos = req.find("Host:");
-	size_t end;
-	int len;
-
-	// Ensures that the request contained the "Host:" tag
-	if (pos != string::npos)
-	{
-		pos += 6;
-		end = pos;
-
-		// Find the end of the line.
-		while (end < req.length() && req[end] != ':' && req[end] != '\r')
-			end++;
-
-		// Extract the host name from the request.
-		if (end < req.length())
-		{
-			cout << "Host line breakdown:\n";
-			cout << "Request[" << pos << "] = " << req[pos] << endl;
-			cout << "Request[" << end << "] = " << req[end] << endl;
-
-			len = end - pos;
-			string hostStr = req.substr(pos, len);
-
-			cout << "Host name: " << hostStr.c_str() << endl;
-			cout << "Host len:  " << len << endl;
-
-			memcpy(hostName, hostStr.c_str(), len + 1);
-
-			hostNameLen = len;
-		}
-		else
-			cout << "Error reading host name, end of request string reached before name extracted.\n";
-
-		// If a port number was specified, extract it from the request.
-		if (req[end] == ':')
-		{
-			end++;
-			pos = end;
-
-			while (req[end] != '\r')
-				end++;
-
-			len = end - pos;
-			string portStr = req.substr(pos, len);
-
-			port = atoi(portStr.c_str());
-		}
-		else
-			port = 80;
-
-		cout << "Port requested: " << port << endl;
-	}
-	else
-		cout << "Host: tag not found in request header.\n";
-}
-
-
-bool isHtml(char *httpRequest)
-{
-	string req(httpRequest);
-
-	size_t pos;
-	size_t end;
-	int len;
-
-	// Isolate the URL.
-	pos = req.find(' ') + 1;
-	end = req.find(' ', pos);
-	len = end - pos;
-	string urlString = req.substr(pos, len);
-
-
-	// Find the last period to isolate the url suffix.
-	pos = urlString.find_last_of('.');
-
-	// Find the html suffix.
-	end = urlString.find("html", pos);
-
-	// If not found, return false, otherwise, return true.
-	if (end == string::npos)
-		return false;
-
-	return true;
-}
-
-
-// Changes a GET request to a HEAD request.
-// More specifically, replaces the first 3 characters in httpRequest with "HEAD"
-void fromGetToHead(char *httpRequest)
-{
-	string req(httpRequest);
-	string headRequest("HEAD" + req.substr(3));
-
-	memcpy(httpRequest, headRequest.c_str(), headRequest.length() + 1);
-}
-
-
-int getContentLength(char * httpResponse)
-{
-	string req(httpResponse);
-
-	size_t pos = req.find("Content-Length:") + 16;
-	size_t end = pos;
-	
-	int len;
-	int numBytes = -1;
-
-	while (req[end] != '\r')
-		end++;
-
-	len = end - pos;
-	numBytes = atoi(  (req.substr(pos, len)).c_str()  );
-
-
-	return numBytes;
-}
-
-
-bool acceptsRanges(char *httpResponse)
-{
-	string req(httpResponse);
-
-	size_t pos = req.find("Accept-Ranges:");
-	size_t end;
-	int len;
-
-	if (pos == string::npos)
-	{
-		cout << "\"Accept-Ranges:\" tag not found.\n";
-		return false;
-	}
-
-	pos += 15;
-	end = pos;
-
-	while (req[end] != '\r')
-		end++;
-
-	len = end - pos;
-
-	string rangeUnits = req.substr(pos, len);
-
-	if (rangeUnits.compare("bytes") == 0)
-		return true;
-
-	return false;
-}
-
-
 
 
 
@@ -498,4 +345,9 @@ void Server::acceptClientConnection()
 	}
 
 	webClientID = tempID;
+}
+
+int Server::getWebClientID()
+{
+	return webClientID;
 }
