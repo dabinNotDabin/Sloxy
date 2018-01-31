@@ -76,49 +76,6 @@ void Sloxy::getHostInfoFromRequest(char *httpRequest, char *hostName, int &hostN
 
 
 
-void Sloxy::receiveMessage(int socketID, char message[], int &msgLength)
-{
-	int receivedCount = -1;
-	int errsv = 0;
-	char rcv_message[10000];
-
-	receivedCount = recv(socketID, rcv_message, 10000, 0);
-	if (receivedCount == 0)
-	{
-		cout << "No messages and peer has shutdown connection..\n";
-		return;
-	}
-	else if (receivedCount == -1)
-	{
-		errsv = errno;
-		cout << "Receive message failed..\n";
-		// process errsv if necessary
-		return;
-	}
-	else
-	{
-		memcpy(message, rcv_message, receivedCount + 1);
-		msgLength = receivedCount;
-	}
-}
-
-void Sloxy::sendMessage(int socketID, char message[], int msgLength)
-{
-	int sentCount = -1;
-	int errsv = 0;
-
-	sentCount = send(socketID, message, msgLength, 0);
-	//sentCount = send(webServerSocketID, headRequest, receivedCount+1, 0);
-	while (sentCount == -1 || sentCount < msgLength)
-	{
-		errsv = errno;
-		cout << "Send message failed or incomplete.\n";
-		// process errsv if necessary
-	}
-
-	cout << "Sent to web server: " << sentCount << endl;
-}
-
 
 // Uses an http request message to build a host internet address
 void Sloxy::buildHostInetAddr(string hostName, int port, struct sockaddr_in &hostInetAddress)
@@ -147,6 +104,55 @@ void Sloxy::buildHostInetAddr(string hostName, int port, struct sockaddr_in &hos
 	cout << "Host address type: " << hostInetAddress.sin_family << endl;
 	cout << "Host port: " << ntohs(hostInetAddress.sin_port) << endl;
 }
+
+
+
+
+void Sloxy::sendMessage(int socketID, char message[], int msgLength)
+{
+	int sentCount = -1;
+	int errsv = 0;
+
+	sentCount = send(socketID, message, msgLength, 0);
+	//sentCount = send(webServerSocketID, headRequest, receivedCount+1, 0);
+	while (sentCount == -1 || sentCount < msgLength)
+	{
+		errsv = errno;
+		cout << "Send message failed or incomplete.\n";
+		// process errsv if necessary
+	}
+
+	cout << "Sent to web server: " << sentCount << endl;
+}
+
+
+
+void Sloxy::receiveMessage(int socketID, char message[], int &msgLength)
+{
+	int receivedCount = -1;
+	int errsv = 0;
+	char rcv_message[10000];
+
+	receivedCount = recv(socketID, rcv_message, 10000, 0);
+	if (receivedCount == 0)
+	{
+		cout << "No messages and peer has shutdown connection..\n";
+		return;
+	}
+	else if (receivedCount == -1)
+	{
+		errsv = errno;
+		cout << "Receive message failed..\n";
+		// process errsv if necessary
+		return;
+	}
+	else
+	{
+		memcpy(message, rcv_message, receivedCount + 1);
+		msgLength = receivedCount;
+	}
+}
+
 
 
 
@@ -315,17 +321,11 @@ void Sloxy::interceptActivity(int port)
 				cout << rcv_message[i];
 			cout << "----------- END MESSAGE -----------\n";
 
-			sentCount = send(server.getWebClientSocketID(), rcv_message, receivedCount, 0);
-			if (sentCount == -1 || sentCount != receivedCount)
-			{
-				errsv = errno;
-				cout << "Send message failed or incomplete.\n";
-				// process errsv if necessary
-			}
-			else
-			{
-				cout << "\nMessage sent back to web client.\n\n\n";
-			}
+
+			memcpy(snd_message, rcv_message, receivedCount + 1);
+			sendMessage(server.getWebClientSocketID(), snd_message, receivedCount);
+
+			cout << "\nMessage sent back to web client.\n\n\n";
 		}
 		else
 		{
