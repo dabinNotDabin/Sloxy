@@ -108,7 +108,7 @@ void Sloxy::buildHostInetAddr(string hostName, int port, struct sockaddr_in &hos
 
 
 
-void Sloxy::sendMessage(int socketID, char message[], int msgLength)
+void Sloxy::sendMessage(int socketID, char message[], int msgLength, int &bytesSent)
 {
 	int sentCount = -1;
 	int errsv = 0;
@@ -122,7 +122,7 @@ void Sloxy::sendMessage(int socketID, char message[], int msgLength)
 		// process errsv if necessary
 	}
 
-	cout << "Sent to web server: " << sentCount << endl;
+	bytesSent = sentCount;
 }
 
 
@@ -188,13 +188,33 @@ bool Sloxy::isHtml(char *httpRequest)
 
 // Changes a GET request to a HEAD request.
 // More specifically, replaces the first 3 characters in httpRequest with "HEAD"
-void Sloxy::fromGetToHead(char *httpRequest)
+void Sloxy::fromGetToHead(char *httpRequest, int &msgLength)
 {
 	string req(httpRequest);
 	string headRequest("HEAD" + req.substr(3));
 
 	memcpy(httpRequest, headRequest.c_str(), headRequest.length() + 1);
+
+	msgLength = headRequest.length() + 1;
 }
+
+
+
+// Changes a GET request to a HEAD request.
+// More specifically, replaces the first 3 characters in httpRequest with "HEAD"
+void Sloxy::fromGetToRangeGet(char *httpRequest, int beginByte, int numBytes, int &msgLength)
+{
+	string req(httpRequest);
+	string begin(itoa(beginByte));
+	string end(itoa(beginByte + numBytes - 1));
+	string rangeRequest(req + "Range: bytes=" + begin + "-" + end);
+
+	memcpy(httpRequest, rangeRequest.c_str(), rangeRequest.length() + 1);
+
+	msgLength = rangeRequest.length() + 1;
+}
+
+
 
 
 int Sloxy::getContentLength(char * httpResponse)
@@ -263,7 +283,7 @@ void Sloxy::interceptActivity(int port)
 	server.acceptClientConnection();
 	cout << endl;
 
-	string messageContainer;
+	string messageBuilder;
 	string partialMessage;
 
 	char rcv_message[10000];
@@ -272,7 +292,13 @@ void Sloxy::interceptActivity(int port)
 	int receivedCount = -1;
 	int sentCount = -1;
 	int errsv = 0;
+	int contentLength = -1;
 
+	int totalMsgLength;
+	int totalReceived;
+
+	int rangeSize = 100;
+	int msgLen = -1;
 
 	if (1)
 	{
@@ -302,30 +328,6 @@ void Sloxy::interceptActivity(int port)
 			cout << "\nConnecting to host.\n";
 
 			client.connectWithHost(hostInternetAddress);
-
-			memcpy(headRequest, rcv_message, receivedCount + 1);
-			fromGetToHead(headRequest);
-
-			memcpy(snd_message, rcv_message, receivedCount + 1);
-
-			sendMessage(client.getWebHostSocketID(), snd_message, receivedCount);
-
-			cout << "Message of length " << sentCount << " sent to web server.\n";
-
-			memset(rcv_message, 'x', 10000);
-			receiveMessage(client.getWebHostSocketID(), rcv_message, receivedCount);
-
-			cout << "\nMessage received from web server.\n";
-			cout << "---------- START MESSAGE ----------\n";
-			for (int i = 0; i < receivedCount; i++)
-				cout << rcv_message[i];
-			cout << "----------- END MESSAGE -----------\n";
-
-
-			memcpy(snd_message, rcv_message, receivedCount + 1);
-			sendMessage(server.getWebClientSocketID(), snd_message, receivedCount);
-
-			cout << "\nMessage sent back to web client.\n\n\n";
 		}
 		else
 		{
@@ -333,26 +335,67 @@ void Sloxy::interceptActivity(int port)
 			// do multithreading here.
 		}
 
-/*
+
 		if (isHtml(rcv_message))
 		{
 			memcpy(headRequest, rcv_message, receivedCount + 1);
-			fromGetToHead(headRequest);
+			memcpy(snd_message, rcv_message, receivedCount + 1);
 
-			cout << "\nTransformed HEAD request: \n\n";
+			fromGetToHead(headRequest, msgLen);
+			sendMessage(client.getWebHostSocketID(), headRequest, msgLen, sentCount);
+
+			cout << "Head request of length " << sentCount << " sent to web server.\n";
+
+			memset(rcv_message, 'x', 10000);
+			receiveMessage(client.getWebHostSocketID(), rcv_message, receivedCount);
+
+			cout << "\nHead reply received from web server.\n";
 			cout << "---------- START MESSAGE ----------\n";
-			for (int i = 0; i < receivedCount + 1; i++)
-				cout << headRequest[i];
-			cout << "----------- END MESSAGE -----------\n\n";
+			for (int i = 0; i < receivedCount; i++)
+				cout << rcv_message[i];
+			cout << "----------- END MESSAGE -----------\n";
+
+			cout << "The header that the web server replied with had length: " << receivedCount << endl;
+
+			contentLength = getContentLength(rcv_message);
+
+			totalMsgLength = receivedCount + contentLength;
+			cout << "The header size plus the content length is: " << totalMsgLength << endl;
 
 
+			if (acceptsRanges(rcv_message))
+			{
+				totalReceived = 0;
 
+				while (totalReceived < totalMsgLength)
+				{
+					fromGetToRangeGet(snd_message, totalReceived, rangeSize, msgLen);
+					sendMessage(client.getWebHostSocketID(), snd_message, msgLen, sentCount);
+
+					if (sentCount != msgLen)
+						cout << "Full message not sent to web server.\n";
+
+					receiveMessage(client.getWebHostSocketID(), rcv_message, receivedCount);
+
+					partialMessage = string(rcv_message);
+					messageBuilder += partialMessage;
+
+					totalReceived += receivedCount;
+				}
+			}
+
+			memcpy(snd_message, messageBuilder.c_str(), totalReceived);
+			sendMessage(server.getWebClientSocketID(), snd_message, totalReceived, sentCount);
+
+			cout << "\nMessage sent back to web client.\n\n\n";
 		}
 		else
 		{
-			// relay directly to host
+			sendMessage(client.getWebHostSocketID(), rcv_message, receivedCount, sentCount);
+			receiveMessage(client.getWebHostSocketID(), rcv_message, receivedCount);
+			sendMessage(server.getWebClientSocketID(), rcv_message, receivedCount, sentCount);
 		}
-*/
+
 	}
 
 	return;

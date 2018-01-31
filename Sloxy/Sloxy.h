@@ -62,10 +62,11 @@ private:
 	// Receives a message from the socket identified by <socketID> and stores the result in
 	// <message> and the length of the message in <msgLength>.
 	void receiveMessage(int socketID, char message[], int &msgLength);
-	void sendMessage(int socketID, char message[], int msgLength);
+	void sendMessage(int socketID, char message[], int msgLength, int &bytesSent);
 
 	bool isHtml(char *httpRequest);
-	void fromGetToHead(char *httpRequest);
+	void fromGetToHead(char *httpRequest, int &msgLength);
+	void fromGetToRangeGet(char *httpRequest, int startPos, int numBytes, int &msgLength);
 	int getContentLength(char *httpResponse);
 	bool acceptsRanges(char *httpResponse);
 };
