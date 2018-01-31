@@ -20,7 +20,7 @@ int main(int argc, char * argv[])
 
 	sloxy.interceptActivity(port);
 
-
+/*
 	int listenerSocketID;
 	int webClientSocketID;
 	int webServerSocketID;
@@ -285,6 +285,7 @@ int main(int argc, char * argv[])
 	close(webClientSocketID);
 	close(webServerSocketID);
 
+	*/
 
 	return 0;
 }
@@ -335,19 +336,21 @@ void Server::listenForClients(int port, int maxConnectQue)
 // If successful, the webClientID will be set as part of the server's state.
 void Server::acceptClientConnection()
 {
-	int tempID;
+	//int tempID;
 
-	tempID = accept(listenSocket.getID(), NULL, NULL);
-	if (tempID == -1)
-	{
-		cout << "Accept connection failed..\n";
-		return;
-	}
+	//tempID = accept(listenSocket.getID(), NULL, NULL);
+	//if (tempID == -1)
+	//{
+	//	cout << "Accept connection failed..\n";
+	//	return;
+	//}
 
-	webClientID = tempID;
+	//webClientID = tempID;
+
+	listenSocket.acceptClientConnection(webClientID);
 }
 
-int Server::getWebClientID()
+int Server::getWebClientSocketID()
 {
 	return webClientID;
 }

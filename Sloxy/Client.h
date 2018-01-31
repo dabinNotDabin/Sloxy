@@ -16,7 +16,7 @@ public:
 	~Client();
 
 	bool connectWithHost(struct sockaddr_in hostAddress);
-	int getSocketID();
+	int getWebHostSocketID();
 
 private:
 	// Client socket used to ask web server for information.

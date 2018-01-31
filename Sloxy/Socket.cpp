@@ -29,7 +29,7 @@ bool Socket::init()
 		return false;
 	}
 
-	cout << "Server socket initialized\n";
+	cout << "Socket initialized\n";
 
 	return true;
 }
@@ -44,7 +44,7 @@ bool Socket::init(short sin_family)
 		return false;
 	}
 
-	cout << "Server socket initialized\n";
+	cout << "Socket initialized\n";
 
 	return true;
 }
@@ -120,7 +120,7 @@ bool Socket::listenToSocket(int connectQueueMax)
 		return false;
 	}
 
-	cout << "Server socket listening...\n";
+	cout << "Socket listening...\n";
 
 	return true;
 }
@@ -151,7 +151,6 @@ bool Socket::acceptClientConnection(int &clientSocketID)
 
 	cout << "A connection has been accepted.\n";
 	cout << "Ready to receive messages.\n";
-	cout << "AF_INET: " << AF_INET << endl;
 
 	return true;
 }

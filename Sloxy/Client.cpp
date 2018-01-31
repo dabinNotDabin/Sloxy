@@ -34,7 +34,7 @@ bool Client::connectWithHost(struct sockaddr_in hostAddress)
 }
 
 
-int Client::getSocketID()
+int Client::getWebHostSocketID()
 {
 	return clientSocket.getID();
 }

@@ -37,15 +37,12 @@ void Sloxy::getHostInfoFromRequest(char *httpRequest, char *hostName, int &hostN
 		// Extract the host name from the request.
 		if (end < req.length())
 		{
-			cout << "Host line breakdown:\n";
-			cout << "Request[" << pos << "] = " << req[pos] << endl;
-			cout << "Request[" << end << "] = " << req[end] << endl;
+			cout << "Host info (extracted from request):\n";
 
 			len = end - pos;
 			string hostStr = req.substr(pos, len);
 
-			cout << "Host name: " << hostStr.c_str() << endl;
-			cout << "Host len:  " << len << endl;
+			cout << "\tName: " << hostStr.c_str() << endl;
 
 			memcpy(hostName, hostStr.c_str(), len + 1);
 
@@ -71,7 +68,7 @@ void Sloxy::getHostInfoFromRequest(char *httpRequest, char *hostName, int &hostN
 		else
 			port = 80;
 
-		cout << "Port requested: " << port << endl;
+		cout << "\tPort requested: " << port << endl;
 	}
 	else
 		cout << "Host: tag not found in request header.\n";
@@ -100,9 +97,26 @@ void Sloxy::receiveMessage(int socketID, char message[], int &msgLength)
 	}
 	else
 	{
-		message = rcv_message;
+		memcpy(message, rcv_message, receivedCount + 1);
 		msgLength = receivedCount;
 	}
+}
+
+void Sloxy::sendMessage(int socketID, char message[], int msgLength)
+{
+	int sentCount = -1;
+	int errsv = 0;
+
+	sentCount = send(socketID, message, msgLength, 0);
+	//sentCount = send(webServerSocketID, headRequest, receivedCount+1, 0);
+	while (sentCount == -1 || sentCount < msgLength)
+	{
+		errsv = errno;
+		cout << "Send message failed or incomplete.\n";
+		// process errsv if necessary
+	}
+
+	cout << "Sent to web server: " << sentCount << endl;
 }
 
 
@@ -111,7 +125,7 @@ void Sloxy::buildHostInetAddr(string hostName, int port, struct sockaddr_in &hos
 {
 	struct hostent *hostEnt = NULL;
 	// if string arg is already a valid IP, no lookup is performed
-	hostEnt = gethostbyname(hostStr.c_str());
+	hostEnt = gethostbyname(hostName.c_str());
 
 	if (hostEnt == NULL)
 	{
@@ -119,19 +133,19 @@ void Sloxy::buildHostInetAddr(string hostName, int port, struct sockaddr_in &hos
 		return;
 	}
 	else
-		cout << "Host resolved.\n";
+		cout << "Host name to IP lookup successful.\n";
 
 	struct in_addr **addr_list;
 	addr_list = (struct in_addr **) hostEnt->h_addr_list;
 
 	memset((&hostInetAddress), 0, sizeof(hostInetAddress));
 	hostInetAddress.sin_family = hostEnt->h_addrtype;
-	hostInetAddress.sin_port = htons(webServerPort);
+	hostInetAddress.sin_port = htons(port);
 	hostInetAddress.sin_addr = *addr_list[0];
 
-	cout << "Web server address: " << inet_ntoa(hostInetAddress.sin_addr) << endl;
-	cout << "Web server address type: " << hostInetAddress.sin_family << endl;
-	cout << "Web server address port: " << ntohs(hostInetAddress.sin_port) << endl;
+	cout << "Host IP: " << inet_ntoa(hostInetAddress.sin_addr) << endl;
+	cout << "Host address type: " << hostInetAddress.sin_family << endl;
+	cout << "Host port: " << ntohs(hostInetAddress.sin_port) << endl;
 }
 
 
@@ -236,82 +250,109 @@ void Sloxy::interceptActivity(int port)
 {
 	int maxConnectQueue = 5;
 
-	struct sockaddr_in internetAddress;
+	struct sockaddr_in hostInternetAddress;
 
+	cout << "Initializing Server.\n";
 	server.listenForClients(port, maxConnectQueue);
 	server.acceptClientConnection();
+	cout << endl;
+
+	string messageContainer;
+	string partialMessage;
 
 	char rcv_message[10000];
+	char snd_message[10000];
 	char headRequest[10000];
 	int receivedCount = -1;
+	int sentCount = -1;
 	int errsv = 0;
 
 
-
-	while (1)
+	if (1)
 	{
-		receivedCount = recv(server.getWebClientID(), rcv_message, 10000, 0);
-		if (receivedCount == 0)
+		receiveMessage(server.getWebClientSocketID(), rcv_message, receivedCount);
+
+		cout << "Server received a message.\n";
+		cout << "---------- START MESSAGE ----------\n";
+		for (int i = 0; i < receivedCount; i++)
+			cout << rcv_message[i];
+		cout << "----------- END MESSAGE -----------\n";
+
+		// ========== GET WEB SERVER ADDRESS FROM REQUEST ==========
+		char * hostName = new char[200];
+		int hostNameLen = 0;
+		int webServerPort;
+
+		cout << "\nGathering host information from request by client.\n";
+
+		getHostInfoFromRequest(rcv_message, hostName, hostNameLen, webServerPort);
+		string hostStr(hostName);
+
+		// If host has not been connected with by an existing representative client
+		if (connectedHosts.find(hostStr) == connectedHosts.end() || true)
 		{
-			cout << "No messages and peer has shutdown connection..\n";
-			break;
-		}
-		else if (receivedCount == -1)
-		{
-			errsv = errno;
-			cout << "Receive message failed..\n";
-			// process errsv if necessary
-			break;
+			buildHostInetAddr(hostStr, webServerPort, hostInternetAddress);
+
+			cout << "\nConnecting to host.\n";
+
+			client.connectWithHost(hostInternetAddress);
+
+			memcpy(headRequest, rcv_message, receivedCount + 1);
+			fromGetToHead(headRequest);
+
+			memcpy(snd_message, rcv_message, receivedCount + 1);
+
+			sendMessage(client.getWebHostSocketID(), snd_message, receivedCount);
+
+			cout << "Message of length " << sentCount << " sent to web server.\n";
+
+			memset(rcv_message, 'x', 10000);
+			receiveMessage(client.getWebHostSocketID(), rcv_message, receivedCount);
+
+			cout << "\nMessage received from web server.\n";
+			cout << "---------- START MESSAGE ----------\n";
+			for (int i = 0; i < receivedCount; i++)
+				cout << rcv_message[i];
+			cout << "----------- END MESSAGE -----------\n";
+
+			sentCount = send(server.getWebClientSocketID(), rcv_message, receivedCount, 0);
+			if (sentCount == -1 || sentCount != receivedCount)
+			{
+				errsv = errno;
+				cout << "Send message failed or incomplete.\n";
+				// process errsv if necessary
+			}
+			else
+			{
+				cout << "\nMessage sent back to web client.\n\n\n";
+			}
 		}
 		else
 		{
-			// ========== GET WEB SERVER ADDRESS FROM REQUEST ==========
-			char * hostName = new char[200];
-			int hostNameLen = 0;
-			int webServerPort;
-
-			getHostInfoFromRequest(rcv_message, hostName, hostNameLen, webServerPort);
-			string hostStr(hostName);
-			cout << "Host Extracted: " << hostStr.c_str() << endl;
-
-			// If host has not been connected with by an existing representative client
-			if (connectedHosts.find(hostStr) == connectedHosts.end())
-			{
-				buildHostInetAddr(hostStr, webServerPort, internetAddress);
-
-				client.connectWithHost(internetAddress);
-
-				// Send head requests to the host (through the representative client)
-				//		to determine if the intended host accepts range requests.
-				// If so, reformat the request from the actual client to perform
-				//		the range requests until the entire message is received.
-				// Send that message back to the actual client.
-			}
-			else
-			{
-				// a client has already connected to this host.
-				// do multithreading here.
-			}
-
-			if (isHtml(rcv_message))
-			{
-				memcpy(headRequest, rcv_message, receivedCount + 1);
-				fromGetToHead(headRequest);
-
-				cout << "\nTransformed HEAD request: \n\n";
-				cout << "---------- START MESSAGE ----------\n";
-				for (int i = 0; i < receivedCount + 1; i++)
-					cout << headRequest[i];
-				cout << "----------- END MESSAGE -----------\n\n";
-
-
-
-			}
-			else
-			{
-				// relay directly to host
-			}
+			// a client has already connected to this host.
+			// do multithreading here.
 		}
+
+/*
+		if (isHtml(rcv_message))
+		{
+			memcpy(headRequest, rcv_message, receivedCount + 1);
+			fromGetToHead(headRequest);
+
+			cout << "\nTransformed HEAD request: \n\n";
+			cout << "---------- START MESSAGE ----------\n";
+			for (int i = 0; i < receivedCount + 1; i++)
+				cout << headRequest[i];
+			cout << "----------- END MESSAGE -----------\n\n";
+
+
+
+		}
+		else
+		{
+			// relay directly to host
+		}
+*/
 	}
 
 	return;

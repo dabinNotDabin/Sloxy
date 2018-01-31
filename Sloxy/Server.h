@@ -20,7 +20,7 @@ public:
 	// This function accepts a client connection from the currently configured listener socket.
 	void acceptClientConnection();
 
-	int getWebClientID();
+	int getWebClientSocketID();
 
 
 private:
