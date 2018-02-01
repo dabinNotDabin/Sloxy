@@ -74,5 +74,6 @@ private:
 	bool acceptsRanges(char *httpResponse);
 	int getHttpResponseCode(char *httpResponse);
 	string getFirstLine(char *sequence);
+	string removeLineStartingWith(const char *sequence, string lineBeginning);
 };
 

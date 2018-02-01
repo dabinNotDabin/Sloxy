@@ -317,6 +317,32 @@ string Sloxy::getFirstLine(char *sequence)
 }
 
 
+string Sloxy::removeLineStartingWith(const char *sequence, string lineBeginning)
+{
+	cout << "\nRemoving.\n";
+	int posA = -1;
+	int posB = -1;
+	string str(sequence);
+
+	posA = str.find(lineBeginning);
+
+	if (posA == string::npos)
+	{
+		return "fuck you posA";
+	}
+
+	posB = str.find("\r\n", posA);
+
+	if (posB == string::npos)
+	{
+		return "fuck you posB";
+	}
+
+	cout << "\nRemoved.\n";
+
+	return str.substr(0, posA) + str.substr(posB + 2);
+}
+
 
 void Sloxy::interceptActivity(int port)
 {
@@ -332,6 +358,7 @@ void Sloxy::interceptActivity(int port)
 	string messageBuilder;
 	string partialMessage;
 	string header;
+	string str;
 
 	char fromClientBuffer[10000];
 	char toClientBuffer[10000];
@@ -360,153 +387,153 @@ void Sloxy::interceptActivity(int port)
 
 	int httpResponseCode = -1;
 
-	if (1)
+
+
+	receiveMessage(server.getWebClientSocketID(), fromClientBuffer, bytesRcvdFromClient);
+
+	cout << "Server received a message of length: " << bytesRcvdFromClient << endl;
+	cout << "---------- START MESSAGE ----------\n";
+	for (int i = 0; i < bytesRcvdFromClient; i++)
+		cout << fromClientBuffer[i];
+	cout << "----------- END MESSAGE -----------\n";
+
+	// ========== GET WEB SERVER ADDRESS FROM REQUEST ==========
+	char * hostName = new char[200];
+	int hostNameLen = 0;
+	int webServerPort;
+
+	cout << "\nGathering host information from request by client.\n";
+
+	getHostInfoFromRequest(fromClientBuffer, hostName, hostNameLen, webServerPort);
+	string hostStr(hostName);
+
+	// If host has not been connected with by an existing representative client
+	if (connectedHosts.find(hostStr) == connectedHosts.end() || true)
 	{
-		receiveMessage(server.getWebClientSocketID(), fromClientBuffer, bytesRcvdFromClient);
+		buildHostInetAddr(hostStr, webServerPort, hostInternetAddress);
 
-		cout << "Server received a message of length: " << bytesRcvdFromClient << endl;
-		cout << "---------- START MESSAGE ----------\n";
-		for (int i = 0; i < bytesRcvdFromClient; i++)
-			cout << fromClientBuffer[i];
-		cout << "----------- END MESSAGE -----------\n";
+		cout << "\nConnecting to host.\n";
 
-		// ========== GET WEB SERVER ADDRESS FROM REQUEST ==========
-		char * hostName = new char[200];
-		int hostNameLen = 0;
-		int webServerPort;
+		client.connectWithHost(hostInternetAddress);
+	}
+	else
+	{
+		// a client has already connected to this host.
+		// do multithreading here.
+	}
 
-		cout << "\nGathering host information from request by client.\n";
 
-		getHostInfoFromRequest(fromClientBuffer, hostName, hostNameLen, webServerPort);
-		string hostStr(hostName);
+	str = removeLineStartingWith(fromClientBuffer, "If-Modified-Since:");
+	str = removeLineStartingWith(str.c_str(), "If-None-Match:");
 
-		// If host has not been connected with by an existing representative client
-		if (connectedHosts.find(hostStr) == connectedHosts.end() || true)
+
+	if (isHtml(fromClientBuffer))
+	{
+		//			memcpy(headRequest, fromClientBuffer, bytesRcvdFromClient + 1);
+		//			memcpy(toHostBuffer, fromClientBuffer, bytesRcvdFromClient + 1);
+
+		memcpy(headRequest, str.c_str(), str.length() + 1);
+		memcpy(toHostBuffer, str.c_str(), str.length() + 1);
+
+		fromGetToHead(headRequest, msgLen);
+		sendMessage(client.getWebHostSocketID(), headRequest, msgLen, bytesSentToClient);
+		cout << "Head request of length " << bytesSentToClient << " sent to web server.\n";
+
+		memset(fromHostBuffer, 'x', 10000);
+		receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
+		cout << "The header that the web server replied with had length: " << bytesRcvdFromHost << endl;
+
+		contentLength = getContentLength(fromHostBuffer);
+		totalMsgLength = bytesRcvdFromHost + contentLength;
+		cout << "The header size plus the content length should be: " << totalMsgLength << endl;
+
+		headerLength = bytesRcvdFromHost;
+		header.assign(fromHostBuffer, headerLength);
+		cout << "\n\nHeader:\n\n" << header;
+
+		httpResponseCode = getHttpResponseCode(fromHostBuffer);
+		cout << "HTTP response: " << httpResponseCode << endl;
+
+		if (httpResponseCode == 404)
 		{
-			buildHostInetAddr(hostStr, webServerPort, hostInternetAddress);
-
-			cout << "\nConnecting to host.\n";
-
-			client.connectWithHost(hostInternetAddress);
+			
 		}
-		else
+
+		if (acceptsRanges(fromHostBuffer) || httpResponseCode == 304)
 		{
-			// a client has already connected to this host.
-			// do multithreading here.
-		}
+			messageBuilder.clear();
+			cout << "Web host accepts range requests.\n";
+			totalReceived = 0;
+			bytesToGet = rangeSize;
 
-
-		if (isHtml(fromClientBuffer))
-		{
-			memcpy(headRequest, fromClientBuffer, bytesRcvdFromClient + 1);
-			memcpy(toHostBuffer, fromClientBuffer, bytesRcvdFromClient + 1);
-
-			// If the request has not been made yet, do a head request and cache it, else use the cached reply.
-			if (cachedRequests.find(string(fromClientBuffer)) == cachedRequests.end())
+			while (totalReceived < contentLength)
 			{
-				fromGetToHead(headRequest, msgLen);
-				sendMessage(client.getWebHostSocketID(), headRequest, msgLen, bytesSentToClient);
+				if ((contentLength - totalReceived) < rangeSize)
+					bytesToGet = contentLength - totalReceived;
 
-				cout << "Head request of length " << bytesSentToClient << " sent to web server.\n";
+				memcpy(rangeRequest, toHostBuffer, bytesRcvdFromClient + 1);
+				fromGetToRangeGet(rangeRequest, totalReceived, bytesToGet, msgLen);
 
-				memset(fromHostBuffer, 'x', 10000);
+				//					cout << "\nSending message to web host of length: " << msgLen << endl;
+				//					cout << "---------- START MESSAGE ----------\n";
+				//					for (int i = 0; i < msgLen; i++)
+				//						cout << rangeRequest[i];
+				//					cout << "----------- END MESSAGE -----------\n";
+
+				client.connectWithHost(hostInternetAddress);
+				sendMessage(client.getWebHostSocketID(), rangeRequest, msgLen, bytesSentToHost);
+
+				if (bytesSentToHost != msgLen)
+					cout << "Full message not sent to web server.\n";
+
 				receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
 
-				cout << "The header that the web server replied with had length: " << bytesRcvdFromHost << endl;
-			
-				cachedRequests[string(fromClientBuffer)] = string(fromHostBuffer);
-			}
-			else
-			{
-				string cachedHeader = cachedRequests[string(fromClientBuffer)];
-				memcpy(fromHostBuffer, cachedHeader.c_str(), cachedHeader.length() + 1);
-				contentLength = getContentLength(fromHostBuffer);
-
-				totalMsgLength = bytesRcvdFromHost + contentLength;
-				cout << "The header size plus the content length should be: " << totalMsgLength << endl;
-
-				headerLength = bytesRcvdFromHost;
-				header.assign(fromHostBuffer, headerLength);
-
-				cout << "\n\nHeader:\n\n" << header;
-
-				httpResponseCode = getHttpResponseCode(fromHostBuffer);
-				cout << "HTTP response: " << httpResponseCode << endl;
-			}
-		
-			if (acceptsRanges(fromHostBuffer) || httpResponseCode == 304)
-			{
-				messageBuilder.clear();
-				cout << "Web host accepts range requests.\n";
-				totalReceived = 0;
-				bytesToGet = rangeSize;
-
-				while (totalReceived < contentLength)
-				{
-					if ((contentLength - totalReceived) < rangeSize)
-						bytesToGet = contentLength - totalReceived;
-
-					memcpy(rangeRequest, toHostBuffer, bytesRcvdFromClient + 1);
-					fromGetToRangeGet(rangeRequest, totalReceived, bytesToGet, msgLen);
-
-					cout << "\nSending message to web host of length: " << msgLen << endl;
-					cout << "---------- START MESSAGE ----------\n";
-					for (int i = 0; i < msgLen; i++)
-						cout << rangeRequest[i];
-					cout << "----------- END MESSAGE -----------\n";
-
-					client.connectWithHost(hostInternetAddress);
-					sendMessage(client.getWebHostSocketID(), rangeRequest, msgLen, bytesSentToHost);
-
-					if (bytesSentToHost != msgLen)
-						cout << "Full message not sent to web server.\n";
-
-					receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
-
-					cout << "\nReceived message from web host of length: " << bytesRcvdFromHost << endl;
-					cout << "---------- START MESSAGE ----------\n";
-					for (int i = 0; i < bytesRcvdFromHost; i++)
-						cout << fromHostBuffer[i];
-					cout << "----------- END MESSAGE -----------\n";
+				//					cout << "\nReceived message from web host of length: " << bytesRcvdFromHost << endl;
+				//					cout << "---------- START MESSAGE ----------\n";
+				//					for (int i = 0; i < bytesRcvdFromHost; i++)
+				//						cout << fromHostBuffer[i];
+				//					cout << "----------- END MESSAGE -----------\n";
 
 
-					cout << "\nBytes to Get: " << bytesToGet << endl;
+				cout << "\nBytes to Get: " << bytesToGet << endl;
 
-					partialMessage.assign(fromHostBuffer, bytesRcvdFromHost - bytesToGet, bytesRcvdFromHost);
-					messageBuilder += partialMessage;
+				partialMessage.assign(fromHostBuffer, bytesRcvdFromHost - bytesToGet, bytesRcvdFromHost);
+				messageBuilder += partialMessage;
 
-					cout << "\n\n\n\nPartial Message:\n\n" << partialMessage << endl << endl;
+				//					cout << "\n\n\n\nPartial Message:\n\n" << partialMessage << endl << endl;
 
-					bytesReceived = getContentLength(fromHostBuffer);
-					totalReceived += bytesReceived;
+				bytesReceived = getContentLength(fromHostBuffer);
+				totalReceived += bytesReceived;
 
-					cout << "\nTotal received: " << totalReceived << endl;
-					cout << "Message so far: \n" << messageBuilder << endl;
-				}
-
-				cout << "Full message received.\n";
-			}
-			else
-			{
-				cout << "Host doesn't accept range requests or accepted range tag was missing.\n";
+				cout << "\nTotal received: " << totalReceived << endl;
+				//					cout << "Message so far: \n" << messageBuilder << endl;
 			}
 
-			messageBuilder = header + messageBuilder;
-
-			memcpy(toClientBuffer, messageBuilder.c_str(), totalMsgLength);
-			sendMessage(server.getWebClientSocketID(), toClientBuffer, totalMsgLength, bytesSentToClient);
+			cout << "Full message received.\n";
 		}
 		else
 		{
-			cout << "File was not html.\n";
-
-			sendMessage(client.getWebHostSocketID(), fromClientBuffer, bytesRcvdFromClient, bytesSentToHost);
-			receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
-			sendMessage(server.getWebClientSocketID(), fromHostBuffer, bytesRcvdFromHost, bytesSentToClient);
+			cout << "Host doesn't accept range requests or accepted range tag was missing.\n";
 		}
 
-		cout << "\nMessage sent back to web client.\n\n\n";
+		messageBuilder = header + messageBuilder;
+
+		memcpy(toClientBuffer, messageBuilder.c_str(), totalMsgLength);
+		sendMessage(server.getWebClientSocketID(), toClientBuffer, totalMsgLength, bytesSentToClient);
 	}
+	else
+	{
+		cout << "File was not html.\n";
+
+		memcpy(toHostBuffer, str.c_str(), str.length() + 1);
+
+		sendMessage(client.getWebHostSocketID(), toHostBuffer, str.length() + 1, bytesSentToHost);
+		receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
+		sendMessage(server.getWebClientSocketID(), fromHostBuffer, bytesRcvdFromHost, bytesSentToClient);
+	}
+
+	cout << "\nMessage sent back to web client.\n\n\n";
+
 
 	return;
 }
