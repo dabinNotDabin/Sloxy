@@ -49,6 +49,9 @@ private:
 	// Map to associate host names to therepresentative client object that is connected to them.
 	map<string, Client> connectedHosts;
 
+	// A map to associate client get request messages with a host's reply to it's equivalent head request.
+	map<string, string> cachedRequests;
+
 	// A server to intercept requests from the web browser.
 	Server server;
 	Client client;
@@ -70,5 +73,6 @@ private:
 	int getContentLength(char *httpResponse);
 	bool acceptsRanges(char *httpResponse);
 	int getHttpResponseCode(char *httpResponse);
+	string getFirstLine(char *sequence);
 };
 

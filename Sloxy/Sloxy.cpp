@@ -303,6 +303,19 @@ bool Sloxy::acceptsRanges(char *httpResponse)
 
 
 
+string Sloxy::getFirstLine(char *sequence)
+{
+	int pos = -1;
+	string str(sequence);
+
+	pos = str.find("\r\n");
+
+	if (pos == string::npos)
+		return "fuck you";
+	
+	return str.substr(0, pos);
+}
+
 
 
 void Sloxy::interceptActivity(int port)
@@ -345,6 +358,8 @@ void Sloxy::interceptActivity(int port)
 	int bytesToGet = -1;
 	int msgLen = -1;
 
+	int httpResponseCode = -1;
+
 	if (1)
 	{
 		receiveMessage(server.getWebClientSocketID(), fromClientBuffer, bytesRcvdFromClient);
@@ -386,29 +401,40 @@ void Sloxy::interceptActivity(int port)
 			memcpy(headRequest, fromClientBuffer, bytesRcvdFromClient + 1);
 			memcpy(toHostBuffer, fromClientBuffer, bytesRcvdFromClient + 1);
 
-			fromGetToHead(headRequest, msgLen);
-			sendMessage(client.getWebHostSocketID(), headRequest, msgLen, bytesSentToClient);
+			// If the request has not been made yet, do a head request and cache it, else use the cached reply.
+			if (cachedRequests.find(string(fromClientBuffer)) == cachedRequests.end())
+			{
+				fromGetToHead(headRequest, msgLen);
+				sendMessage(client.getWebHostSocketID(), headRequest, msgLen, bytesSentToClient);
 
-			cout << "Head request of length " << bytesSentToClient << " sent to web server.\n";
+				cout << "Head request of length " << bytesSentToClient << " sent to web server.\n";
 
-			memset(fromHostBuffer, 'x', 10000);
-			receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
+				memset(fromHostBuffer, 'x', 10000);
+				receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
 
-			cout << "The header that the web server replied with had length: " << bytesRcvdFromHost << endl;
+				cout << "The header that the web server replied with had length: " << bytesRcvdFromHost << endl;
+			
+				cachedRequests[string(fromClientBuffer)] = string(fromHostBuffer);
+			}
+			else
+			{
+				string cachedHeader = cachedRequests[string(fromClientBuffer)];
+				memcpy(fromHostBuffer, cachedHeader.c_str(), cachedHeader.length() + 1);
+				contentLength = getContentLength(fromHostBuffer);
 
-			contentLength = getContentLength(fromHostBuffer);
+				totalMsgLength = bytesRcvdFromHost + contentLength;
+				cout << "The header size plus the content length should be: " << totalMsgLength << endl;
 
-			totalMsgLength = bytesRcvdFromHost + contentLength;
-			cout << "The header size plus the content length should be: " << totalMsgLength << endl;
+				headerLength = bytesRcvdFromHost;
+				header.assign(fromHostBuffer, headerLength);
 
-			headerLength = bytesRcvdFromHost;
-			header.assign(fromHostBuffer, headerLength);
+				cout << "\n\nHeader:\n\n" << header;
 
-			cout << "\n\nHeader:\n\n" << header;
-
-			cout << "HTTP response: " << getHttpResponseCode(fromHostBuffer) << endl;
-
-			if (acceptsRanges(fromHostBuffer))
+				httpResponseCode = getHttpResponseCode(fromHostBuffer);
+				cout << "HTTP response: " << httpResponseCode << endl;
+			}
+		
+			if (acceptsRanges(fromHostBuffer) || httpResponseCode == 304)
 			{
 				messageBuilder.clear();
 				cout << "Web host accepts range requests.\n";
