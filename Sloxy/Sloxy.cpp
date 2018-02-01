@@ -345,16 +345,84 @@ string Sloxy::removeLineStartingWith(const char *sequence, string lineBeginning)
 }
 
 
+
+
+bool Sloxy::hasLocationTag(const char *httpResponse)
+{
+	int pos = -1;
+	string response(httpResponse);
+
+	pos = response.find("Location:");
+
+	if (pos != string::npos)
+		return true;
+	else
+		return false;
+}
+
+
+
+
+string Sloxy::getLocation(const char *httpResponse)
+{
+	int posA = -1;
+	int posB = -1;
+	string response(httpResponse);
+
+	posA = response.find("Location:");
+		
+	if (posA == string::npos)
+		return "fuck you - no location tag.\n";
+	else
+	{
+		posA+= 10;
+		posB = response.find("\r\n", posA);
+
+		if (posB = string::npos)
+			return "fuck you - reached end of response before end of location url.\n";
+		else
+			return response.substr(posA, posB - posA);
+	} 
+}
+
+
+
+string Sloxy::replaceUrl(const char *httpRequest, string newUrl)
+{
+	int posA = -1;
+	int posB = -1;
+	string request(httpRequest);
+	string newRequest;
+
+	posA = request.find_first_of(' ');
+
+	if (posA == string::npos)
+	{
+		return "fuck you - no spaces whatsoever in httpRequest.\n";
+	}
+	else
+	{
+		posA++;
+		posB = request.find_first_of(' ');
+
+		if (posB == string::npos)
+			return "fuck you - only one space found in entire httpRequest.\n";
+		else
+		{
+			newRequest = request.substr(0, posA) + newUrl + request.substr(posB);
+//			newLength = newRequest.length();
+			return newRequest;
+		}
+	}
+}
+
+
+
 void Sloxy::interceptActivity(int port)
 {
 	int maxConnectQueue = 5;
 
 	struct sockaddr_in hostInternetAddress;
-
-	cout << "Initializing Server.\n";
-	server.listenForClients(port, maxConnectQueue);
-	server.acceptClientConnection();
-	cout << endl;
 
 	string messageBuilder;
 	string partialMessage;
@@ -389,6 +457,11 @@ void Sloxy::interceptActivity(int port)
 	int httpResponseCode = -1;
 
 
+	// ========== INIT SERVER, ACCEPT A CONNECTION, RECEIVE A REQUEST ==========
+	cout << "Initializing Server.\n";
+	server.listenForClients(port, maxConnectQueue);
+	server.acceptClientConnection();
+	cout << endl;
 
 	receiveMessage(server.getWebClientSocketID(), fromClientBuffer, bytesRcvdFromClient);
 
@@ -408,7 +481,7 @@ void Sloxy::interceptActivity(int port)
 	getHostInfoFromRequest(fromClientBuffer, hostName, hostNameLen, webServerPort);
 	string hostStr(hostName);
 
-	// If host has not been connected with by an existing representative client
+	// If host has not been connected to by an existing representative client
 	if (connectedHosts.find(hostStr) == connectedHosts.end() || true)
 	{
 		buildHostInetAddr(hostStr, webServerPort, hostInternetAddress);
@@ -426,9 +499,6 @@ void Sloxy::interceptActivity(int port)
 	// Remove conditions from GET requests
 	str = removeLineStartingWith(fromClientBuffer, "If-Modified-Since:");
 	str = removeLineStartingWith(str.c_str(), "If-None-Match:");
-
-//	memcpy(headRequest, fromClientBuffer, bytesRcvdFromClient + 1);
-//	memcpy(toHostBuffer, fromClientBuffer, bytesRcvdFromClient + 1);
 
 	memcpy(headRequest, str.c_str(), str.length() + 1);
 	memcpy(toHostBuffer, str.c_str(), str.length() + 1);
@@ -451,6 +521,7 @@ void Sloxy::interceptActivity(int port)
 	header.assign(fromHostBuffer, headerLength);
 	cout << "\n\nHeader:\n\n" << header;
 
+	// Process response to head request and determine course of action.
 	httpResponseCode = getHttpResponseCode(fromHostBuffer);
 	cout << "HTTP response: " << httpResponseCode << endl;
 
@@ -471,13 +542,22 @@ void Sloxy::interceptActivity(int port)
 
 		sendMessage(server.getWebClientSocketID(), fromHostBuffer, bytesRcvdFromHost, bytesSentToClient);
 	}
+	// For 301/302, probably want to resend head request with new url until a 200 is returned.
 	else if (httpResponseCode == 301)
 	{
+		string newLocation = getLocation(fromHostBuffer);
+		cout << "New location url: " << newLocation << endl;
 
+		str = replaceUrl(str.c_str(), newLocation);
+		memcpy(toHostBuffer, str.c_str(), str.length() + 1);
 	}
 	else if (httpResponseCode == 302)
 	{
+		string newLocation = getLocation(fromHostBuffer);
+		cout << "New location url: " << newLocation << endl;
 
+		str = replaceUrl(str.c_str(), newLocation);
+		memcpy(toHostBuffer, str.c_str(), str.length() + 1);
 	}
 	else
 	{

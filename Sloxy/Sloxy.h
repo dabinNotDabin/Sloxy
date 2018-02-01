@@ -75,5 +75,8 @@ private:
 	int getHttpResponseCode(char *httpResponse);
 	string getFirstLine(char *sequence);
 	string removeLineStartingWith(const char *sequence, string lineBeginning);
+	bool hasLocationTag(const char *httpResponse);
+	string getLocation(const char *httpResponse);
+	string replaceUrl(const char *httpRequest, string newUrl);
 };
 
