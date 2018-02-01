@@ -67,7 +67,7 @@ private:
 	void receiveMessage(int socketID, char message[], int &msgLength);
 	void sendMessage(int socketID, char message[], int msgLength, int &bytesSent);
 
-	bool isHtml(char *httpRequest);
+	bool isHtml(const char *httpRequest);
 	void fromGetToHead(char *httpRequest, int &msgLength);
 	void fromGetToRangeGet(char *httpRequest, int startPos, int numBytes, int &msgLength);
 	int getContentLength(char *httpResponse);
