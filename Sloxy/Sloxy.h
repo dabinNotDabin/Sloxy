@@ -69,5 +69,6 @@ private:
 	void fromGetToRangeGet(char *httpRequest, int startPos, int numBytes, int &msgLength);
 	int getContentLength(char *httpResponse);
 	bool acceptsRanges(char *httpResponse);
+	int getHttpResponseCode(char *httpResponse);
 };
 
