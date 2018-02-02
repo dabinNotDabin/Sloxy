@@ -461,7 +461,10 @@ void Sloxy::interceptActivity(int port)
 	cout << "Initializing Server.\n";
 	server.listenForClients(port, maxConnectQueue);
 	server.acceptClientConnection();
+	close(server.getListenerSocketID());
 	cout << endl;
+
+	
 
 	receiveMessage(server.getWebClientSocketID(), fromClientBuffer, bytesRcvdFromClient);
 
@@ -509,7 +512,7 @@ void Sloxy::interceptActivity(int port)
 	cout << "Head request of length " << bytesSentToClient << " sent to web server.\n";
 
 	// Receive reply to head request.
-	memset(fromHostBuffer, 'x', 10000);
+	memset(fromHostBuffer, '\0', 10000);
 	receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
 	cout << "The header that the web server replied with had length: " << bytesRcvdFromHost << endl;
 
@@ -545,11 +548,19 @@ void Sloxy::interceptActivity(int port)
 	// For 301/302, probably want to resend head request with new url until a 200 is returned.
 	else if (httpResponseCode == 301)
 	{
-		string newLocation = getLocation(fromHostBuffer);
-		cout << "New location url: " << newLocation << endl;
+		string getRedir = "GET /index.php HTTP/1.1\r\nHost: www.example.org\r\n\r\n";
+		string redirResp = "HTTP/1.1 301 Moved Permanently\r\nLocation: http://www.example.org/index.asp\r\n\r\n";
 
-		str = replaceUrl(str.c_str(), newLocation);
-		memcpy(toHostBuffer, str.c_str(), str.length() + 1);
+		string newLocation = getLocation(redirResp.c_str());
+		cout << "New location url: " << newLocation << endl;
+		str = replaceUrl(getRedir.c_str(), newLocation);
+		cout << "New Get: \n" << str << endl;
+
+		//string newLocation = getLocation(fromHostBuffer);
+		//cout << "New location url: " << newLocation << endl;
+
+		//str = replaceUrl(str.c_str(), newLocation);
+		//memcpy(toHostBuffer, str.c_str(), str.length() + 1);
 	}
 	else if (httpResponseCode == 302)
 	{
@@ -574,11 +585,11 @@ void Sloxy::interceptActivity(int port)
 			memcpy(rangeRequest, toHostBuffer, bytesRcvdFromClient + 1);
 			fromGetToRangeGet(rangeRequest, totalReceived, bytesToGet, msgLen);
 
-			//					cout << "\nSending message to web host of length: " << msgLen << endl;
-			//					cout << "---------- START MESSAGE ----------\n";
-			//					for (int i = 0; i < msgLen; i++)
-			//						cout << rangeRequest[i];
-			//					cout << "----------- END MESSAGE -----------\n";
+			//cout << "\nSending message to web host of length: " << msgLen << endl;
+			//cout << "---------- START MESSAGE ----------\n";
+			//for (int i = 0; i < msgLen; i++)
+			//	cout << rangeRequest[i];
+			//cout << "----------- END MESSAGE -----------\n";
 
 			close(client.getWebHostSocketID());
 			client.connectWithHost(hostInternetAddress);
@@ -587,27 +598,30 @@ void Sloxy::interceptActivity(int port)
 			if (bytesSentToHost != msgLen)
 				cout << "Full message not sent to web server.\n";
 
+			memset(fromHostBuffer, '\0', 10000);
 			receiveMessage(client.getWebHostSocketID(), fromHostBuffer, bytesRcvdFromHost);
 
-			//					cout << "\nReceived message from web host of length: " << bytesRcvdFromHost << endl;
-			//					cout << "---------- START MESSAGE ----------\n";
-			//					for (int i = 0; i < bytesRcvdFromHost; i++)
-			//						cout << fromHostBuffer[i];
-			//					cout << "----------- END MESSAGE -----------\n";
-
+			//cout << "\nReceived message from web host of length: " << bytesRcvdFromHost << endl;
+			//cout << "---------- START MESSAGE ----------\n";
+			//for (int i = 0; i < bytesRcvdFromHost; i++)
+			//	cout << fromHostBuffer[i];
+			//cout << "----------- END MESSAGE -----------\n";
 
 			cout << "\nBytes to Get: " << bytesToGet << endl;
 
-			partialMessage.assign(fromHostBuffer, bytesRcvdFromHost - bytesToGet, bytesRcvdFromHost);
+			partialMessage = fromHostBuffer;
+			partialMessage = partialMessage.substr(partialMessage.length() - bytesToGet - 1, bytesToGet);
 			messageBuilder += partialMessage;
 
-			//					cout << "\n\n\n\nPartial Message:\n\n" << partialMessage << endl << endl;
+			cout << "\n\n\n\nPartial Message:\n\n" << partialMessage << endl << endl;
 
 			bytesReceived = getContentLength(fromHostBuffer);
 			totalReceived += bytesReceived;
 
 			cout << "\nTotal received: " << totalReceived << endl;
-			//					cout << "Message so far: \n" << messageBuilder << endl;
+			cout << "Message so far: \n" << messageBuilder << endl;
+			
+			usleep(100000);
 		}
 
 		cout << "Full message received.\n";
@@ -618,7 +632,8 @@ void Sloxy::interceptActivity(int port)
 		sendMessage(server.getWebClientSocketID(), toClientBuffer, totalMsgLength, bytesSentToClient);
 	}
 
-
+	close(server.getWebClientSocketID());
+	close(client.getWebHostSocketID());
 
 	return;
 }

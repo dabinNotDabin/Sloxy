@@ -21,6 +21,7 @@ public:
 	void acceptClientConnection();
 
 	int getWebClientSocketID();
+	int getListenerSocketID();
 
 
 private:
